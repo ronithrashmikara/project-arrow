@@ -265,6 +265,7 @@ project-arrow/
 <div align="center">
 <sub>
 <b>Project Arrow · Capture → Calculate → Verify → Act → Share</b><br>
-Lanka Nippon BizTech Institute · B.Sc. (Hons) Software Engineering · PRO310130 · 2026–2027
+Lanka Nippon BizTech Institute · B.Sc. (Hons) Software Engineering · PRO310130 · 2026–2027<br>
+Repository created: <b>25 October 2026</b>
 </sub>
 </div>

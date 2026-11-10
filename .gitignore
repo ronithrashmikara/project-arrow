@@ -4,3 +4,9 @@ node_modules/
 .DS_Store
 assets/hero.mp4
 assets/hero.png
+
+
+backend/.venv/
+backend/.env
+__pycache__/
+*.pyc

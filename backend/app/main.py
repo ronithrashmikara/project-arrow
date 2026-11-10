@@ -8,6 +8,10 @@ from app.ghg.routes import (
     router as ghg_router
 )
 
+from app.admin.routes import (
+    router as admin_router
+)
+
 app = FastAPI(
     title="Project Arrow API",
     version="0.1.0"
@@ -31,4 +35,8 @@ def health():
 
 app.include_router(
     factors_router
+)
+
+app.include_router(
+    admin_router
 )

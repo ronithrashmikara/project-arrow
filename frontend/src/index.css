@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+:root {
+  --midnight-jungle: #040A05;
+  --deep-forest: #031912;
+  --forest-shadow: #0C2B25;
+  --atmospheric-teal: #123C3A;
+
+  --electric-emerald: #2BE38B;
+  --fresh-emerald: #3DCF8E;
+  --luminous-mint: #6CE9B4;
+
+  --soft-sea-glass: #C4DDD1;
+  --mountain-teal: #255454;
+  --misty-blue-teal: #487674;
+
+  --sunset-gold: #F1C087;
+  --warm-copper: #BE8144;
+
+  --white-text: #F8F9FB;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--midnight-jungle);
+  color: var(--white-text);
+  font-family: Inter, system-ui, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}

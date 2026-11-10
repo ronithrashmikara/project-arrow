@@ -11,17 +11,14 @@ def find_peer_group(
     groups = get_active_peer_groups()
 
     for group in groups:
-
         district_match = (
             group["district"] is None
-            or group["district"].lower()
-            == district.lower()
+            or group["district"].lower() == district.lower()
         )
 
         type_match = (
             group["hotel_type"] is None
-            or group["hotel_type"].lower()
-            == hotel_type.lower()
+            or group["hotel_type"].lower() == hotel_type.lower()
         )
 
         min_match = (

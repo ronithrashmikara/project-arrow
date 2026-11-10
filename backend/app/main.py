@@ -16,6 +16,8 @@ from app.peer_groups.routes import (
     router as peer_groups_router
 )
 
+from app.audit.routes import router as audit_router
+
 app = FastAPI(
     title="Project Arrow API",
     version="0.1.0"
@@ -48,3 +50,5 @@ app.include_router(
 app.include_router(
     peer_groups_router
 )
+
+app.include_router(audit_router)

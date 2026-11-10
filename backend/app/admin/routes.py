@@ -14,6 +14,8 @@ from app.admin.repository import (
     update_hotel_status
 )
 
+from app.audit.service import create_audit_log
+
 
 router = APIRouter(
     prefix="/admin",
@@ -63,5 +65,15 @@ def change_hotel_status(
             status_code=404,
             detail="Hotel not found"
         )
+
+    create_audit_log(
+        user_id=None,
+        action=f"HOTEL_{data.status}",
+        entity_type="HOTEL",
+        entity_id=hotel_id,
+        details={
+            "status": data.status
+        }
+    )
 
     return updated

@@ -7,6 +7,10 @@ Extracts structured domain fields from OCR tokens and transcripts:
 """
 
 import re
+
+def clean_number_string(val: str) -> str:
+    return "".join(ch for ch in str(val) if ch.isdigit() or ch == ".")
+
 from typing import Any, Dict, List, Optional, Tuple
 from app.config import settings
 from app.extraction.validators import (

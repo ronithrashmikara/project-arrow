@@ -4,71 +4,71 @@
   "total_fields": 205,
   "overall_metrics": {
     "total_samples": 205,
-    "exact_matches": 196,
-    "exact_match_accuracy": 0.9561,
-    "mean_cer": 0.0152,
-    "mean_confidence": 0.8884,
-    "flagged_for_review_count": 40,
-    "flagged_for_review_rate": 0.1951,
+    "exact_matches": 192,
+    "exact_match_accuracy": 0.9366,
+    "mean_cer": 0.0168,
+    "mean_confidence": 0.8855,
+    "flagged_for_review_count": 37,
+    "flagged_for_review_rate": 0.1805,
     "unflagged_accuracy": 1.0
   },
   "printed_metrics": {
-    "total_samples": 137,
-    "exact_matches": 134,
-    "exact_match_accuracy": 0.9781,
-    "mean_cer": 0.008,
-    "mean_confidence": 0.9183,
+    "total_samples": 139,
+    "exact_matches": 136,
+    "exact_match_accuracy": 0.9784,
+    "mean_cer": 0.0059,
+    "mean_confidence": 0.9103,
     "flagged_for_review_count": 6,
-    "flagged_for_review_rate": 0.0438,
+    "flagged_for_review_rate": 0.0432,
     "unflagged_accuracy": 1.0
   },
   "handwritten_metrics": {
-    "total_samples": 68,
-    "exact_matches": 62,
-    "exact_match_accuracy": 0.9118,
-    "mean_cer": 0.0299,
-    "mean_confidence": 0.8282,
-    "flagged_for_review_count": 34,
-    "flagged_for_review_rate": 0.5,
+    "total_samples": 66,
+    "exact_matches": 56,
+    "exact_match_accuracy": 0.8485,
+    "mean_cer": 0.0396,
+    "mean_confidence": 0.8333,
+    "flagged_for_review_count": 31,
+    "flagged_for_review_rate": 0.4697,
     "unflagged_accuracy": 1.0
   },
   "per_field_metrics": {
     "account_number": {
       "total_samples": 37,
-      "exact_matches": 37,
-      "exact_match_accuracy": 1.0,
-      "mean_cer": 0.003,
-      "mean_confidence": 0.9244,
-      "flagged_for_review_count": 1,
-      "flagged_for_review_rate": 0.027,
+      "exact_matches": 36,
+      "exact_match_accuracy": 0.973,
+      "mean_cer": 0.0087,
+      "mean_confidence": 0.9037,
+      "flagged_for_review_count": 3,
+      "flagged_for_review_rate": 0.0811,
       "unflagged_accuracy": 1.0
     },
     "units_m3": {
       "total_samples": 19,
-      "exact_matches": 18,
-      "exact_match_accuracy": 0.9474,
+      "exact_matches": 16,
+      "exact_match_accuracy": 0.8421,
       "mean_cer": 0.0526,
-      "mean_confidence": 0.8457,
-      "flagged_for_review_count": 7,
-      "flagged_for_review_rate": 0.3684,
+      "mean_confidence": 0.8642,
+      "flagged_for_review_count": 5,
+      "flagged_for_review_rate": 0.2632,
       "unflagged_accuracy": 1.0
     },
     "total_amount": {
       "total_samples": 75,
-      "exact_matches": 71,
-      "exact_match_accuracy": 0.9467,
-      "mean_cer": 0.0143,
-      "mean_confidence": 0.8807,
-      "flagged_for_review_count": 15,
-      "flagged_for_review_rate": 0.2,
+      "exact_matches": 70,
+      "exact_match_accuracy": 0.9333,
+      "mean_cer": 0.0117,
+      "mean_confidence": 0.8786,
+      "flagged_for_review_count": 16,
+      "flagged_for_review_rate": 0.2133,
       "unflagged_accuracy": 1.0
     },
     "quantity_kg_or_liters": {
       "total_samples": 38,
       "exact_matches": 34,
       "exact_match_accuracy": 0.8947,
-      "mean_cer": 0.0237,
-      "mean_confidence": 0.8689,
+      "mean_cer": 0.0316,
+      "mean_confidence": 0.8681,
       "flagged_for_review_count": 11,
       "flagged_for_review_rate": 0.2895,
       "unflagged_accuracy": 1.0
@@ -78,7 +78,7 @@
       "exact_matches": 18,
       "exact_match_accuracy": 1.0,
       "mean_cer": 0.0024,
-      "mean_confidence": 0.928,
+      "mean_confidence": 0.906,
       "flagged_for_review_count": 1,
       "flagged_for_review_rate": 0.0556,
       "unflagged_accuracy": 1.0
@@ -88,9 +88,9 @@
       "exact_matches": 18,
       "exact_match_accuracy": 1.0,
       "mean_cer": 0.0,
-      "mean_confidence": 0.8934,
-      "flagged_for_review_count": 5,
-      "flagged_for_review_rate": 0.2778,
+      "mean_confidence": 0.9158,
+      "flagged_for_review_count": 1,
+      "flagged_for_review_rate": 0.0556,
       "unflagged_accuracy": 1.0
     }
   },
@@ -98,32 +98,32 @@
     {
       "bin_range": "[0.00, 0.50)",
       "sample_count": 1,
-      "mean_confidence": 0.4209,
+      "mean_confidence": 0.429,
       "accuracy": 0.0,
-      "calibration_gap": 0.4209
+      "calibration_gap": 0.429
     },
     {
       "bin_range": "[0.50, 0.70)",
-      "sample_count": 9,
-      "mean_confidence": 0.5886,
-      "accuracy": 0.5556,
-      "calibration_gap": 0.0331
+      "sample_count": 11,
+      "mean_confidence": 0.6005,
+      "accuracy": 0.3636,
+      "calibration_gap": 0.2369
     },
     {
       "bin_range": "[0.70, 0.85)",
-      "sample_count": 30,
-      "mean_confidence": 0.807,
-      "accuracy": 0.8667,
-      "calibration_gap": 0.0596
+      "sample_count": 25,
+      "mean_confidence": 0.8009,
+      "accuracy": 0.8,
+      "calibration_gap": 0.0009
     },
     {
       "bin_range": "[0.85, 1.00]",
-      "sample_count": 165,
-      "mean_confidence": 0.9224,
+      "sample_count": 168,
+      "mean_confidence": 0.9195,
       "accuracy": 1.0,
-      "calibration_gap": 0.0776
+      "calibration_gap": 0.0805
     }
   ],
-  "expected_calibration_error": 0.0747,
+  "expected_calibration_error": 0.0809,
   "low_confidence_flag_recall": 1.0
 }

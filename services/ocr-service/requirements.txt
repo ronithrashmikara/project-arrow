@@ -12,8 +12,11 @@ opencv-python-headless>=4.9.0.80
 pillow>=10.2.0
 
 # OCR Engines & Deep Learning
-paddleocr>=2.7.0
-paddlepaddle>=2.6.0; sys_platform != "darwin"
+# PaddleOCR 2.7.x + PaddlePaddle 2.6.x: stable Windows-compatible versions.
+# PaddleOCR 3.x ships oneDNN-backed PP-OCRv6 models that crash on many Windows
+# CPU builds with "ConvertPirAttribute2RuntimeAttribute not supported".
+paddleocr==2.7.3
+paddlepaddle==2.6.2; sys_platform != "darwin"
 torch>=2.2.0
 transformers>=4.38.0
 

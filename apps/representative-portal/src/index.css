@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #040A05;
+    color: #F8F9FB;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Custom scrollbars matching Deep Forest styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #031912;
+}
+::-webkit-scrollbar-thumb {
+  background: #255454;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3DCF8E;
+}

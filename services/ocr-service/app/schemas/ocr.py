@@ -15,6 +15,7 @@ class ExtractionStatus(str, Enum):
 
     PENDING = "pending"
     DRAFT = "draft"
+    PENDING_REVIEW = "pending_review"
     FLAGGED_FOR_REVIEW = "flagged_for_review"
     CONFIRMED = "confirmed"
     REJECTED = "rejected"
@@ -122,7 +123,7 @@ class DraftExtractionResult(BaseModel):
 
     document_id: str = Field(..., description="Unique document / bill identifier or SHA-256 hash.")
     status: ExtractionStatus = Field(
-        default=ExtractionStatus.DRAFT,
+        default=ExtractionStatus.PENDING_REVIEW,
         description="Current extraction status.",
     )
     document_type: DocumentType = Field(

@@ -1,0 +1,129 @@
+{
+  "dataset_name": "Sri Lankan Hospitality Bill Benchmark (200+ Fields)",
+  "total_images": 75,
+  "total_fields": 205,
+  "overall_metrics": {
+    "total_samples": 205,
+    "exact_matches": 196,
+    "exact_match_accuracy": 0.9561,
+    "mean_cer": 0.0152,
+    "mean_confidence": 0.8884,
+    "flagged_for_review_count": 40,
+    "flagged_for_review_rate": 0.1951,
+    "unflagged_accuracy": 1.0
+  },
+  "printed_metrics": {
+    "total_samples": 137,
+    "exact_matches": 134,
+    "exact_match_accuracy": 0.9781,
+    "mean_cer": 0.008,
+    "mean_confidence": 0.9183,
+    "flagged_for_review_count": 6,
+    "flagged_for_review_rate": 0.0438,
+    "unflagged_accuracy": 1.0
+  },
+  "handwritten_metrics": {
+    "total_samples": 68,
+    "exact_matches": 62,
+    "exact_match_accuracy": 0.9118,
+    "mean_cer": 0.0299,
+    "mean_confidence": 0.8282,
+    "flagged_for_review_count": 34,
+    "flagged_for_review_rate": 0.5,
+    "unflagged_accuracy": 1.0
+  },
+  "per_field_metrics": {
+    "account_number": {
+      "total_samples": 37,
+      "exact_matches": 37,
+      "exact_match_accuracy": 1.0,
+      "mean_cer": 0.003,
+      "mean_confidence": 0.9244,
+      "flagged_for_review_count": 1,
+      "flagged_for_review_rate": 0.027,
+      "unflagged_accuracy": 1.0
+    },
+    "units_m3": {
+      "total_samples": 19,
+      "exact_matches": 18,
+      "exact_match_accuracy": 0.9474,
+      "mean_cer": 0.0526,
+      "mean_confidence": 0.8457,
+      "flagged_for_review_count": 7,
+      "flagged_for_review_rate": 0.3684,
+      "unflagged_accuracy": 1.0
+    },
+    "total_amount": {
+      "total_samples": 75,
+      "exact_matches": 71,
+      "exact_match_accuracy": 0.9467,
+      "mean_cer": 0.0143,
+      "mean_confidence": 0.8807,
+      "flagged_for_review_count": 15,
+      "flagged_for_review_rate": 0.2,
+      "unflagged_accuracy": 1.0
+    },
+    "quantity_kg_or_liters": {
+      "total_samples": 38,
+      "exact_matches": 34,
+      "exact_match_accuracy": 0.8947,
+      "mean_cer": 0.0237,
+      "mean_confidence": 0.8689,
+      "flagged_for_review_count": 11,
+      "flagged_for_review_rate": 0.2895,
+      "unflagged_accuracy": 1.0
+    },
+    "billing_period": {
+      "total_samples": 18,
+      "exact_matches": 18,
+      "exact_match_accuracy": 1.0,
+      "mean_cer": 0.0024,
+      "mean_confidence": 0.928,
+      "flagged_for_review_count": 1,
+      "flagged_for_review_rate": 0.0556,
+      "unflagged_accuracy": 1.0
+    },
+    "units_kwh": {
+      "total_samples": 18,
+      "exact_matches": 18,
+      "exact_match_accuracy": 1.0,
+      "mean_cer": 0.0,
+      "mean_confidence": 0.8934,
+      "flagged_for_review_count": 5,
+      "flagged_for_review_rate": 0.2778,
+      "unflagged_accuracy": 1.0
+    }
+  },
+  "calibration_bins": [
+    {
+      "bin_range": "[0.00, 0.50)",
+      "sample_count": 1,
+      "mean_confidence": 0.4209,
+      "accuracy": 0.0,
+      "calibration_gap": 0.4209
+    },
+    {
+      "bin_range": "[0.50, 0.70)",
+      "sample_count": 9,
+      "mean_confidence": 0.5886,
+      "accuracy": 0.5556,
+      "calibration_gap": 0.0331
+    },
+    {
+      "bin_range": "[0.70, 0.85)",
+      "sample_count": 30,
+      "mean_confidence": 0.807,
+      "accuracy": 0.8667,
+      "calibration_gap": 0.0596
+    },
+    {
+      "bin_range": "[0.85, 1.00]",
+      "sample_count": 165,
+      "mean_confidence": 0.9224,
+      "accuracy": 1.0,
+      "calibration_gap": 0.0776
+    }
+  ],
+  "expected_calibration_error": 0.0747,
+  "low_confidence_flag_recall": 1.0
+}

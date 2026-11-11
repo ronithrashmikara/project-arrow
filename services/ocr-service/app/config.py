@@ -5,9 +5,14 @@ from pydantic import Field
 
 try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
-except ImportError:  # Fallback for pydantic v1 or environments without pydantic-settings
-    from pydantic import BaseSettings  # type: ignore
-    SettingsConfigDict = None  # type: ignore
+except Exception:  # Fallback for pydantic v1 or environments without pydantic-settings installed yet
+    try:
+        from pydantic.v1 import BaseSettings  # type: ignore
+        SettingsConfigDict = None  # type: ignore
+    except Exception:
+        from pydantic import BaseModel
+        BaseSettings = BaseModel  # type: ignore
+        SettingsConfigDict = None  # type: ignore
 
 
 class Settings(BaseSettings):
@@ -22,18 +27,8 @@ class Settings(BaseSettings):
     # Human-In-The-Loop (HITL) Confidence Thresholds
     # Values below CONFIDENCE_THRESHOLD are flagged for human review.
     # No unconfirmed OCR value enters the Project Arrow reporting database.
-    CONFIDENCE_THRESHOLD: float = Field(
-        default=0.85,
-        ge=0.0,
-        le=1.0,
-        description="Field confidence threshold below which human confirmation is required.",
-    )
-    LOW_CONFIDENCE_CHAR_THRESHOLD: float = Field(
-        default=0.75,
-        ge=0.0,
-        le=1.0,
-        description="Token / character confidence threshold for flagging individual digits.",
-    )
+    CONFIDENCE_THRESHOLD: float = 0.85
+    LOW_CONFIDENCE_CHAR_THRESHOLD: float = 0.75
 
     # Engine Settings
     DEFAULT_ENGINE: str = "ensemble"  # Options: paddleocr, trocr, ensemble

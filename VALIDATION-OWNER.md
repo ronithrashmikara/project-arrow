@@ -15,5 +15,12 @@ Validated November 13, 2026 on Windows. Interpreted the request as completing Ro
 ## Honest limits
 
 Synthetic single-hotel data, local SQLite, unauthenticated demo acknowledgements and in-process jobs. Not production authorization, multi-tenancy, durable job orchestration, verified carbon accounting, real occupancy forecasting or completed team integration. LightGBM is a genuine candidate selected only when its small synthetic holdout beats seasonal-naive. Forecast bands are illustrative. CI configuration is committed locally but has not run on GitHub. No push or deployment performed.
-
 See YOUR-WORK.md for assignment and production follow-up. Demo acceptance changed local budget/signoffs/receipts/jobs intentionally. Runtime data and virtual environments are ignored by git.
+
+## UI refinement, November 13, 2026
+
+Replaced cream/serif marketing styling with a neutral operations layout, charcoal navigation, consistent SVG icons, grouped numeric summaries and plain task-oriented copy. Reduced decorative badges and fixed scenario field labels and chart month names. Kept existing endpoints, form IDs and sign-off guards.
+
+Production build passed after refinement. Reviewed actual compiled dashboard in Chrome desktop and a 390px embedded browser viewport (375px content width with scrollbar). All six routes had no document overflow, chart overflow stayed inside its scroll container, and the narrow-screen scenario form returned 219,846 projected kg and five-year payback with readable units. The public HTTP acceptance suite passed again. This is responsive desktop-browser validation, not physical phone testing.
+
+Fetched origin/ronith before final UI commit: no remote-only commits and a fast-forward push is possible at that observation. No push performed.

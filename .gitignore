@@ -4,3 +4,16 @@ node_modules/
 .DS_Store
 assets/hero.mp4
 assets/hero.png
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+dist/
+runtime/
+*.tsbuildinfo
+

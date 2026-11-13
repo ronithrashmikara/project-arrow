@@ -13,7 +13,7 @@ if errorlevel 1 (
 )
 if not exist ".venv\Scripts\python.exe" python -m venv .venv
 if errorlevel 1 exit /b 1
-.venv\Scripts\python.exe -m pip install -r apps\owner-api\requirements.txt
+.venv\Scripts\python.exe -m pip install -r apps\owner-api\requirements-ml.txt
 if errorlevel 1 exit /b 1
 cd apps\owner-web
 call npm ci --no-audit --no-fund

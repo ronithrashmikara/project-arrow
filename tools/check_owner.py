@@ -84,7 +84,7 @@ def main() -> None:
     forecast = request('/owner/forecast')
     assert forecast['points'] and forecast['training_data'] == 'demo'
     assert all(p['lower_kg'] <= p['predicted_kg'] <= p['upper_kg'] for p in forecast['points'])
-    job = request('/owner/jobs/retrain', 'POST', {})
+    job = request('/owner/jobs/retrain', 'POST', {}, 202)
     deadline = time.monotonic() + 60
     while time.monotonic() < deadline:
         jobs = request('/owner/jobs')

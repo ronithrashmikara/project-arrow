@@ -1,0 +1,49 @@
+name: Owner module CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ronith, dev, main]
+    paths:
+      - 'apps/owner-api/**'
+      - 'apps/owner-web/**'
+      - '.github/workflows/owner-ci.yml'
+  pull_request:
+    paths:
+      - 'apps/owner-api/**'
+      - 'apps/owner-web/**'
+      - '.github/workflows/owner-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: apps/owner-api/requirements.txt
+      - name: Install API dependencies
+        run: python -m pip install -r apps/owner-api/requirements.txt
+      - name: Run API regression tests
+        working-directory: apps/owner-api
+        run: python -m pytest -q
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/owner-web/package-lock.json
+      - name: Install locked frontend dependencies
+        working-directory: apps/owner-web
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck and production build
+        working-directory: apps/owner-web
+        run: npm run build

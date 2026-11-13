@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 
-from . import service
+from . import analytics, service
 
 router = APIRouter(prefix="/policy", tags=["policy"])
 
@@ -66,6 +67,55 @@ def trends(year: str | None = Query(default=None)) -> list[dict]:
 def gis(year: str | None = Query(default=None)) -> list[dict]:
     """District payload for the choropleth map."""
     return service.gis(_validate_year(year))
+
+
+@router.get("/overview")
+def overview(year: str | None = Query(default=None)) -> dict:
+    """Headline KPIs for the national overview cards."""
+    return analytics.overview(_validate_year(year))
+
+
+@router.get("/district-stats")
+def district_stats(year: str | None = Query(default=None)) -> list[dict]:
+    """Heat-map payload with median property intensity per district."""
+    return analytics.district_stats(_validate_year(year))
+
+
+@router.get("/category-stats")
+def category_stats(year: str | None = Query(default=None)) -> list[dict]:
+    """Box-plot payload per SLTDA category group."""
+    return analytics.category_stats(_validate_year(year))
+
+
+@router.get("/seasonality")
+def seasonality(year: str | None = Query(default=None)) -> dict:
+    """Peak vs off-season monthly series."""
+    return analytics.seasonality(_validate_year(year))
+
+
+@router.get("/leaderboard")
+def leaderboard(year: str | None = Query(default=None)) -> dict:
+    """Pseudonymised national ranking (no real property names)."""
+    return analytics.leaderboard(_validate_year(year))
+
+
+@router.get("/baseline-report")
+def baseline_report(year: str | None = Query(default=None)) -> dict:
+    """Deterministic national baseline brief with dataset hash."""
+    return analytics.baseline_report(_validate_year(year))
+
+
+@router.get("/export.csv", response_class=PlainTextResponse)
+def export_csv(year: str | None = Query(default=None)) -> PlainTextResponse:
+    """Anonymised district dataset export (k >= 5 applied upstream)."""
+    validated = _validate_year(year)
+    csv_text = analytics.to_csv(analytics.export_rows(validated), validated)
+    filename = f"project-arrow-districts-{validated or 'all'}.csv"
+    return PlainTextResponse(
+        csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/pathway")

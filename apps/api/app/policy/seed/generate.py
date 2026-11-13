@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import random
+import zlib
 from datetime import date
 from pathlib import Path
 
@@ -57,10 +58,12 @@ CATEGORIES = [
     "Tourist Hotel 4*",
     "Tourist Hotel 3*",
     "Boutique Hotel",
+    "Bungalow",
     "Guest House A",
     "Guest House B",
     "Heritage Bungalow",
     "Homestay",
+    "Not registered",
 ]
 
 SIZE_BANDS = ["small (<30)", "medium (30-100)", "large (100+)"]
@@ -72,18 +75,29 @@ SIZE_BANDS = ["small (<30)", "medium (30-100)", "large (100+)"]
 PROPERTY_PLAN: list[tuple[str, int]] = [
     ("Colombo", 8),
     ("Gampaha", 7),
-    ("Kalutara", 5),
+    ("Kalutara", 6),
     ("Kandy", 7),
+    ("Matale", 5),
     ("Nuwara Eliya", 5),
     ("Galle", 6),
-    ("Matara", 4),  # suppressed
-    ("Hambantota", 3),  # suppressed
-    ("Jaffna", 2),  # suppressed
-    ("Batticaloa", 2),  # suppressed
-    ("Anuradhapura", 2),  # suppressed
-    ("Kurunegala", 1),  # suppressed
-    ("Badulla", 1),  # suppressed
-    ("Ratnapura", 1),  # suppressed
+    ("Matara", 5),
+    ("Hambantota", 4),  # suppressed
+    ("Jaffna", 5),
+    ("Kilinochchi", 3),  # suppressed
+    ("Mannar", 2),  # suppressed
+    ("Batticaloa", 4),  # suppressed
+    ("Ampara", 4),  # suppressed
+    ("Trincomalee", 4),  # suppressed
+    ("Anuradhapura", 5),
+    ("Polonnaruwa", 4),  # suppressed
+    ("Monaragala", 3),  # suppressed
+    ("Badulla", 4),  # suppressed
+    ("Kegalle", 3),  # suppressed
+    ("Kurunegala", 5),
+    ("Puttalam", 3),  # suppressed
+    ("Ratnapura", 3),  # suppressed
+    ("Vayamba", 2),  # suppressed
+    ("Mullaitivu", 2),  # suppressed
 ]
 
 # Realistic-ish guest night share per district weight.
@@ -92,17 +106,41 @@ DISTRICT_WEIGHT = {
     "Gampaha": 5.0,
     "Kalutara": 4.0,
     "Kandy": 6.5,
+    "Matale": 2.2,
     "Nuwara Eliya": 5.5,
     "Galle": 5.0,
     "Matara": 3.5,
     "Hambantota": 2.5,
-    "Batticaloa": 1.6,
     "Jaffna": 1.4,
+    "Kilinochchi": 1.0,
+    "Mannar": 0.6,
+    "Vayamba": 0.8,
+    "Mullaitivu": 0.6,
+    "Batticaloa": 1.6,
+    "Ampara": 1.3,
+    "Trincomalee": 1.2,
     "Anuradhapura": 1.5,
-    "Kurunegala": 1.8,
+    "Polonnaruwa": 1.0,
+    "Monaragala": 0.9,
     "Badulla": 1.2,
+    "Kegalle": 1.1,
+    "Kurunegala": 1.8,
+    "Puttalam": 1.4,
     "Ratnapura": 1.0,
 }
+
+
+def district_profile(name: str) -> tuple[float, float]:
+    """Deterministic (efficiency, grid_ratio) per district.
+
+    Efficiency scales how carbon-intensive a property is, and grid_ratio the
+    share of Scope 2 in its emissions. Both are derived from the district name
+    so the national map shows a real gradient instead of a flat colour.
+    """
+    digest = zlib.crc32(name.encode("utf-8"))
+    efficiency = 0.78 + (digest % 62) / 100.0  # 0.78 - 1.39
+    grid_ratio = 0.35 + ((digest >> 8) % 46) / 100.0  # 0.35 - 0.80
+    return efficiency, grid_ratio
 
 
 def reporting_months(start_year: int, years: int = 2) -> list[str]:
@@ -140,6 +178,8 @@ def build() -> dict:
         if district not in DISTRICT_WEIGHT:
             continue
 
+        efficiency, grid_ratio = district_profile(district)
+
         for slot in range(property_count):
             idx = len(properties) + 1
             category = CATEGORIES[(idx * 3) % len(CATEGORIES)]
@@ -176,9 +216,11 @@ def build() -> dict:
                 guest_nights = round(guest_nights_base * seasonal * trend * rng.uniform(0.9, 1.1))
                 occupancy = round(guest_nights * rng.uniform(0.55, 0.85))
 
-                scope1 = round(guest_nights * rng.uniform(1.4, 3.6) * trend, 1)
-                scope2 = round(guest_nights * rng.uniform(3.1, 9.4) * trend, 1)
-                scope3 = round(guest_nights * rng.uniform(1.8, 5.2) * trend, 1)
+                scope1 = round(guest_nights * rng.uniform(1.4, 3.6) * efficiency * trend, 1)
+                scope2 = round(
+                    guest_nights * rng.uniform(3.1, 9.4) * efficiency * grid_ratio * 2.2 * trend, 1
+                )
+                scope3 = round(guest_nights * rng.uniform(1.8, 5.2) * efficiency * trend, 1)
 
                 submissions.append(
                     {

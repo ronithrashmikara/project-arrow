@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-midnight: #040A05;
+  --color-deep-forest: #031912;
+  --color-forest-shadow: #0C2B25;
+  --color-atmos-teal: #123C3A;
+  --color-electric-emerald: #2BE38B;
+  --color-fresh-emerald: #3DCF8E;
+  --color-luminous-mint: #6CE9B4;
+  --color-soft-glass: #C4DDD1;
+  --color-mountain-teal: #255454;
+  --color-misty-teal: #487674;
+  --color-sunset-gold: #F1C087;
+  --color-warm-copper: #BE8144;
+  --color-white-text: #F8F9FB;
+}
+
+@layer base {
+  body {
+    @apply bg-midnight text-white-text font-sans antialiased overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+}

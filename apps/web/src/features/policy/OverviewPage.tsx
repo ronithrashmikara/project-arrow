@@ -11,27 +11,18 @@ import {
 import BoxPlot from './charts/BoxPlot'
 import HeatMap from './charts/HeatMap'
 import SeasonalityChart from './charts/SeasonalityChart'
+import { useReportingYears } from '../../hooks/useReportingYears'
+
+
 
 export default function OverviewPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [overview, setOverview] = useState<Overview | null>(null)
   const [districts, setDistricts] = useState<DistrictHeatStat[]>([])
   const [categories, setCategories] = useState<CategoryStat[]>([])
   const [season, setSeason] = useState<Seasonality | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -64,7 +55,9 @@ export default function OverviewPage() {
   }, [year])
 
   if (loading) return <Spinner label="Loading national figures" />
-  if (error) return <ErrorBox message={error} />
+  const shownError = error ?? yearsError
+  if (shownError) return <ErrorBox message={shownError} />
+  
 
   const deltas = overview?.deltas ?? {}
   const totalDelta = deltas.total_kg_change_pct

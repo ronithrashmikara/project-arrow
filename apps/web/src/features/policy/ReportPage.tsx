@@ -1,24 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Button, ErrorBox, Footnote, GlassCard, Panel, Pill, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type BaselineReport } from '../../lib/api'
+import { useReportingYears } from '../../hooks/useReportingYears'
+
 
 export default function ReportPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [report, setReport] = useState<BaselineReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -38,7 +28,8 @@ export default function ReportPage() {
       cancelled = true
     }
   }, [year])
-
+const shownError = error ?? yearsError
+if (shownError) return <ErrorBox message={shownError} />
   const downloadText = () => {
     if (!report) return
     const body = report.sections.map((section) => `${section.heading.toUpperCase()}\n${section.body}`).join('\n\n')

@@ -2,24 +2,13 @@ import { useEffect, useState } from 'react'
 import { Button, ErrorBox, Footnote, LockBadge, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type DistrictHeatStat } from '../../lib/api'
 import { rampColour } from './charts/HeatMap'
+import { useReportingYears } from '../../hooks/useReportingYears'
 
 export default function DistrictPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [districts, setDistricts] = useState<DistrictHeatStat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -41,7 +30,8 @@ export default function DistrictPage() {
   }, [year])
 
   if (loading) return <Spinner label="Loading district data" />
-  if (error) return <ErrorBox message={error} />
+  const shownError = error ?? yearsError
+  if (shownError) return <ErrorBox message={shownError} />
 
   const published = districts.filter((district) => !district.suppressed)
   const max = published.length ? Math.max(...published.map((d) => d.median_intensity)) : 1

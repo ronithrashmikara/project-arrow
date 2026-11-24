@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ErrorBox, Footnote, KpiCard, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type PathwayResult } from '../../lib/api'
+import { scenarioRepo, type Scenario } from '../../lib/repositories/scenarioRepository'
 
 export default function PathwayPage() {
   const [years, setYears] = useState<string[]>([])
@@ -12,6 +13,12 @@ export default function PathwayPage() {
   const [result, setResult] = useState<PathwayResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // --- Saved Scenarios State ---
+  const [savedScenarios, setSavedScenarios] = useState<Scenario[]>([])
+  const [scenarioName, setScenarioName] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     policyApi
@@ -44,12 +51,56 @@ export default function PathwayPage() {
     }
   }, [year, scope1, scope2, scope3])
 
+  // Load saved scenarios on mount
+  useEffect(() => {
+    scenarioRepo.list().then(setSavedScenarios).catch(console.error)
+  }, [])
+
   const comparison = result
     ? [
         { name: 'Baseline', total: result.baseline_total_kg },
         { name: 'Scenario', total: result.projected_total_kg },
       ]
     : []
+
+  // --- CRUD Functions ---
+  const handleSaveScenario = async () => {
+    if (!scenarioName.trim()) {
+      setSaveError('Please enter a name for the scenario.')
+      return
+    }
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const newScenario = await scenarioRepo.create({
+        name: scenarioName,
+        year,
+        scope1,
+        scope2,
+        scope3,
+      })
+      setSavedScenarios((prev) => [...prev, newScenario])
+      setScenarioName('')
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save scenario')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleLoadScenario = (scenario: Scenario) => {
+    setYear(scenario.year)
+    setScope1(scenario.scope1)
+    setScope2(scenario.scope2)
+    setScope3(scenario.scope3)
+  }
+
+  const handleDeleteScenario = async (id: string) => {
+    if (confirm('Are you sure you want to delete this scenario?')) {
+      await scenarioRepo.remove(id)
+      setSavedScenarios((prev) => prev.filter((s) => s.id !== id))
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -71,6 +122,62 @@ export default function PathwayPage() {
             <Slider id="scope1" label="Scope 1 reduction" value={scope1} onChange={setScope1} />
             <Slider id="scope2" label="Scope 2 reduction (grid electricity)" value={scope2} onChange={setScope2} />
             <Slider id="scope3" label="Scope 3 reduction (food, waste, laundry)" value={scope3} onChange={setScope3} />
+            
+            {/* --- NEW UI BLOCK STARTS HERE --- */}
+            <div className="pt-4 border-t border-forest-shadow space-y-3">
+              <h3 className="text-sm font-medium text-paper">Saved Scenarios</h3>
+              
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="Scenario name..."
+                  value={scenarioName}
+                  onChange={(e) => setScenarioName(e.target.value)}
+                  className="border border-atmospheric-teal bg-forest-shadow/60 rounded px-2 py-1 flex-1 text-sm text-paper placeholder:text-soft-sea-glass"
+                />
+                <button
+                  onClick={handleSaveScenario}
+                  disabled={isSaving}
+                  className="bg-electric-emerald/20 text-electric-emerald border border-electric-emerald/50 px-3 py-1 rounded text-xs font-medium hover:bg-electric-emerald/30 disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+              {saveError && <p className="text-red-400 text-xs">{saveError}</p>}
+
+              {savedScenarios.length > 0 ? (
+                <ul className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                  {savedScenarios.map((s) => (
+                    <li key={s.id} className="flex justify-between items-center bg-forest-shadow/40 p-2 rounded border border-forest-shadow/60">
+                      <div className="overflow-hidden">
+                        <span className="font-medium text-paper text-xs truncate block">{s.name}</span>
+                        <span className="text-[10px] text-misty-blue-teal">
+                          S1:{s.scope1}% S2:{s.scope2}% S3:{s.scope3}%
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-2">
+                        <button
+                          onClick={() => handleLoadScenario(s)}
+                          className="text-luminous-mint text-[10px] hover:underline"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => handleDeleteScenario(s.id)}
+                          className="text-sunset-gold text-[10px] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-soft-sea-glass text-xs italic">No saved scenarios yet.</p>
+              )}
+            </div>
+            {/* --- NEW UI BLOCK ENDS HERE --- */}
+
             <p className="rounded-[10px] border border-forest-shadow bg-forest-shadow/40 px-3 py-2 text-[11px] text-misty-blue-teal">
               The scenario applies the same percentage reduction to every property, so relative
               differences between districts are preserved.
@@ -95,7 +202,6 @@ export default function PathwayPage() {
                   hairline="bg-electric-emerald"
                 />
               </div>
-
               <Panel title="Baseline vs scenario" description="National total after reductions">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={comparison} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
@@ -118,7 +224,6 @@ export default function PathwayPage() {
           ) : null}
         </div>
       </div>
-
       <Footnote>
         Scenario figures are projections, not verified historical emissions. Every number is derived
         from the deterministic GHG engine.

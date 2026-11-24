@@ -1,25 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Button, ErrorBox, Footnote, GlassCard, Panel, Pill, YearSelect } from '../../components/ui'
 import { policyApi } from '../../lib/api'
+import { useReportingYears } from '../../hooks/useReportingYears'
 
 export default function ExportPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [format, setFormat] = useState<'CSV' | 'JSON'>('CSV')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [requested, setRequested] = useState(false)
-
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   const downloadJson = async () => {
     setLoading(true)
@@ -42,6 +31,8 @@ export default function ExportPage() {
     }
   }
 
+  const shownError = error ?? yearsError
+  if (shownError) return <ErrorBox message={shownError} />
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">

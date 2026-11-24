@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ErrorBox, Footnote, Panel, Pill, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type LeaderboardEntry } from '../../lib/api'
+import { useReportingYears } from '../../hooks/useReportingYears'
 
 const TIER_STYLE: Record<LeaderboardEntry['tier'], { text: string; ring: string; bg: string }> = {
   Leader: { text: 'text-electric-emerald', ring: 'border-electric-emerald/50', bg: 'bg-electric-emerald/10' },
@@ -8,24 +9,14 @@ const TIER_STYLE: Record<LeaderboardEntry['tier'], { text: string; ring: string;
   'Needs improvement': { text: 'text-sunset-gold', ring: 'border-sunset-gold/50', bg: 'bg-sunset-gold/10' },
 }
 
+
 export default function LeaderboardPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [groups, setGroups] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -58,7 +49,8 @@ export default function LeaderboardPage() {
   }, [entries])
 
   if (loading) return <Spinner label="Loading leaderboard" />
-  if (error) return <ErrorBox message={error} />
+  const shownError = error ?? yearsError
+  if (shownError) return <ErrorBox message={shownError} />
 
   return (
     <div className="space-y-6">

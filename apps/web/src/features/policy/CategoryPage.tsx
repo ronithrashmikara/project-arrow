@@ -1,25 +1,14 @@
 import { useEffect, useState } from 'react'
 import { ErrorBox, Footnote, LockBadge, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type CategoryStat } from '../../lib/api'
+import { useReportingYears } from '../../hooks/useReportingYears'
 import BoxPlot from './charts/BoxPlot'
 
 export default function CategoryPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [categories, setCategories] = useState<CategoryStat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -41,7 +30,8 @@ export default function CategoryPage() {
   }, [year])
 
   if (loading) return <Spinner label="Loading category data" />
-  if (error) return <ErrorBox message={error} />
+  const shownError = error ?? yearsError
+  if (shownError) return <ErrorBox message={shownError} />
 
   const published = categories.filter((category) => !category.suppressed)
 

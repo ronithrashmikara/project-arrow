@@ -4,6 +4,7 @@ node_modules/
 .DS_Store
 assets/hero.mp4
 assets/hero.png
+AKARSHA_TODO.md
 
 # Python
 __pycache__/

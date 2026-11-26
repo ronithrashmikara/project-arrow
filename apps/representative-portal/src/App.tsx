@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { BillCapture } from './components/BillCapture';
 import { OCRReviewCard } from './components/OCRReviewCard';
@@ -14,11 +14,8 @@ import {
   syncQueue,
 } from './services/offlineQueue';
 import {
-  ShieldCheck,
   CheckCircle2,
   PlusCircle,
-  Lock,
-  TrendingDown,
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -30,9 +27,20 @@ export const App: React.FC = () => {
   const [confirmedResult, setConfirmedResult] = useState<HumanConfirmationResponse | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
+  /**
+   * When OCR extraction is in progress the CPU inference can take 30-90 s.
+   * Blocking health-check pings during that window prevents the status pill
+   * from briefly flickering to "Offline" just because the backend is busy.
+   */
+  const isExtractingRef = useRef<boolean>(false);
+
   // Monitor Network Connectivity & Backend Liveness
   useEffect(() => {
     const updateOnlineStatus = async () => {
+      // Don't flip status while OCR inference is running — the server is busy,
+      // not dead, so a 15 s health-check timeout would falsely show "Offline".
+      if (isExtractingRef.current) return;
+
       if (!navigator.onLine) {
         setIsOnline(false);
         return;
@@ -46,8 +54,9 @@ export const App: React.FC = () => {
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', () => setIsOnline(false));
 
-    // Periodic ping to backend every 12 seconds
-    const interval = setInterval(updateOnlineStatus, 12000);
+    // Periodic ping every 20 s (was 12 s — a bit more relaxed to avoid
+    // overlapping with a slow inference response).
+    const interval = setInterval(updateOnlineStatus, 20_000);
 
     return () => {
       window.removeEventListener('online', updateOnlineStatus);
@@ -182,49 +191,14 @@ export const App: React.FC = () => {
           </div>
         ) : (
           /* State 3: Normal Capture View */
-          <div className="space-y-8 animate-in fade-in duration-200">
-            {/* Capture Component */}
+          <div className="animate-in fade-in duration-200">
             <BillCapture
               isOnline={isOnline}
               onDraftReady={handleDraftReady}
               onQueued={() => setQueueDrawerOpen(true)}
+              onExtractionStart={() => { isExtractingRef.current = true; }}
+              onExtractionEnd={() => { isExtractingRef.current = false; }}
             />
-
-            {/* Information Grid for Representative Staff */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-5 rounded-2xl bg-brand-forest-shadow/50 border border-brand-teal-mountain/30 space-y-2">
-                <div className="flex items-center gap-2 text-brand-emerald-fresh text-xs font-semibold">
-                  <ShieldCheck className="w-4 h-4 text-brand-emerald-electric" />
-                  Dual OCR Protection
-                </div>
-                <h4 className="text-sm font-semibold text-brand-white">PaddleOCR + TrOCR Fusion</h4>
-                <p className="text-xs text-brand-seaglass/70 leading-relaxed">
-                  Printed bill structures are detected via PaddleOCR. Unclear figures and handwriting crops are routed to TrOCR for digit-level confidence scoring.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-brand-forest-shadow/50 border border-brand-teal-mountain/30 space-y-2">
-                <div className="flex items-center gap-2 text-brand-gold-sunset text-xs font-semibold">
-                  <Lock className="w-4 h-4 text-brand-gold-sunset" />
-                  Mandatory Human Confirmation
-                </div>
-                <h4 className="text-sm font-semibold text-brand-white">HITL Audit Guard</h4>
-                <p className="text-xs text-brand-seaglass/70 leading-relaxed">
-                  Low-confidence numbers are highlighted with Sunset Gold borders. No unverified draft figure enters the certified reporting ledger.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-brand-forest-shadow/50 border border-brand-teal-mountain/30 space-y-2">
-                <div className="flex items-center gap-2 text-brand-emerald-mint text-xs font-semibold">
-                  <TrendingDown className="w-4 h-4 text-brand-emerald-electric" />
-                  Offline-First Architecture
-                </div>
-                <h4 className="text-sm font-semibold text-brand-white">IndexedDB Local Queue</h4>
-                <p className="text-xs text-brand-seaglass/70 leading-relaxed">
-                  Capture bills during field inspections without mobile internet. All documents queue locally and auto-sync when network connectivity returns.
-                </p>
-              </div>
-            </div>
           </div>
         )}
       </main>

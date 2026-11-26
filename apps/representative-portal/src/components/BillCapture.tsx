@@ -21,6 +21,10 @@ interface BillCaptureProps {
   isOnline: boolean;
   onDraftReady: (draft: DraftExtractionResult, previewUrl: string) => void;
   onQueued: () => void;
+  /** Called when OCR extraction starts so the parent can pause health-check pings. */
+  onExtractionStart?: () => void;
+  /** Called when OCR extraction finishes (success or failure) to resume health checks. */
+  onExtractionEnd?: () => void;
 }
 
 const DOCUMENT_TYPES: { id: DocumentType; label: string; icon: React.ElementType; sub: string }[] = [
@@ -30,7 +34,13 @@ const DOCUMENT_TYPES: { id: DocumentType; label: string; icon: React.ElementType
   { id: 'generator_fuel', label: 'Fuel / Diesel', icon: Fuel, sub: 'CEYPETCO / LIOC' },
 ];
 
-export const BillCapture: React.FC<BillCaptureProps> = ({ isOnline, onDraftReady, onQueued }) => {
+export const BillCapture: React.FC<BillCaptureProps> = ({
+  isOnline,
+  onDraftReady,
+  onQueued,
+  onExtractionStart,
+  onExtractionEnd,
+}) => {
   const [selectedType, setSelectedType] = useState<DocumentType>('electricity_bill');
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -88,7 +98,7 @@ export const BillCapture: React.FC<BillCaptureProps> = ({ isOnline, onDraftReady
     setLoading(true);
     setError(null);
 
-    // If offline, store directly in IndexedDB queue
+    // If offline, store directly in IndexedDB queue (no backend call needed)
     if (!isOnline) {
       try {
         await enqueueBill(selectedFile, selectedFile.name, selectedType);
@@ -102,22 +112,27 @@ export const BillCapture: React.FC<BillCaptureProps> = ({ isOnline, onDraftReady
       return;
     }
 
-    // If online, send to FastAPI microservice
+    // Signal parent to freeze health-check pings for the duration of inference
+    onExtractionStart?.();
+
+    // Send to FastAPI microservice
     try {
       const draft = await extractBill(selectedFile, selectedType, selectedFile.name);
       if (draft.quality_assessment && draft.quality_assessment.warnings?.length > 0) {
         setQualityWarning(draft.quality_assessment);
       }
       setLoading(false);
+      onExtractionEnd?.();
       onDraftReady(draft, previewUrl || '');
     } catch (err: any) {
-      // If network fails during request, offer to enqueue offline
+      onExtractionEnd?.();
+      // If network fails during the request, offer to enqueue offline
       try {
         await enqueueBill(selectedFile, selectedFile.name, selectedType);
         setOfflineSaved(true);
         setError('Backend unreachable. Bill has been saved to offline queue for automatic sync.');
         onQueued();
-      } catch (queueErr) {
+      } catch {
         setError(err.message || 'OCR extraction failed.');
       }
       setLoading(false);
@@ -150,7 +165,7 @@ export const BillCapture: React.FC<BillCaptureProps> = ({ isOnline, onDraftReady
             </h2>
           </div>
           <p className="text-xs text-brand-seaglass/70 mt-1">
-            Capture utility bills & meter readings with dual PaddleOCR + TrOCR processing.
+            Select the bill type, then upload or photograph it to digitise the figures.
           </p>
         </div>
 
@@ -276,7 +291,7 @@ export const BillCapture: React.FC<BillCaptureProps> = ({ isOnline, onDraftReady
                   Inspect & Digitise Bill
                 </h4>
                 <p className="text-xs text-brand-seaglass/70 mt-1 leading-relaxed">
-                  The image will be evaluated for blur and glare, de-skewed, and processed through our dual-engine pipeline (PaddleOCR for printed text and TrOCR for handwriting).
+                  Review the image, then click <strong className="text-brand-white">Extract & Verify Text</strong> to read and confirm the figures before they are accepted into the system.
                 </p>
 
                 {/* Quality Warning Pill if any */}

@@ -357,7 +357,7 @@ export const BillCapture: React.FC<BillCaptureProps> = ({
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>{isOnline ? 'Running Dual OCR Pipeline...' : 'Saving to Queue...'}</span>
+                      <span>{isOnline ? 'Reading Bill Details...' : 'Saving to Queue...'}</span>
                     </>
                   ) : offlineSaved ? (
                     <>

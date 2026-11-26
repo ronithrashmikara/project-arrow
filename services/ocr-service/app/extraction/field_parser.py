@@ -187,10 +187,16 @@ _NWSDB_SLASH_ACCOUNT: re.Pattern = re.compile(
     r"\b([0-9]{1,4}(?:/[0-9]{1,4}){3,6})\b"
 )
 
-# NWSDB label anchors on printed bills and SMS
+# Labels on NWSDB bills that must be ignored when extracting account numbers
+_NWSDB_IGNORED_LABELS: re.Pattern = re.compile(
+    r"\bMETER\s*(?:NO\.?|NUMBER|SERIAL\s*NO\.?)",
+    re.IGNORECASE,
+)
+
+# NWSDB label anchors on printed bills, e-Bills, and SMS
 _NWSDB_ACCOUNT_ANCHOR: re.Pattern = re.compile(
-    r"(?:A/?C\s*(?:NO\.?|NUMBER)|ACCOUNT\s*(?:NO\.?|NUMBER)|CUST(?:OMER)?\s*(?:NO\.?|NUMBER)|"
-    r"SERVICE\s*(?:NO\.?|NUMBER)|METER\s*(?:NO\.?))",
+    r"(?:ACCT\s*(?:NO\.?|NUMBER)|A/?C\s*(?:NO\.?|NUMBER)|ACCOUNT\s*(?:NO\.?|NUMBER)|"
+    r"CUST(?:OMER)?\s*(?:NO\.?|NUMBER)|SERVICE\s*(?:NO\.?|NUMBER))",
     re.IGNORECASE,
 )
 
@@ -198,33 +204,44 @@ _NWSDB_ACCOUNT_ANCHOR: re.Pattern = re.compile(
 def _extract_nwsdb_account_number(text: str) -> Optional[str]:
     """Extract NWSDB account number.
 
-    Accepts:
-      • Slash-formatted strings: "42/24/731/266/19"
-      • Plain 8–12 digit numbers anchored near a label
+    Priority:
+      1. Slash-formatted account number near "ACCT NO" / "A/C No." / "Account Number"
+      2. Any slash-formatted account number anywhere in the document (e.g. "42/24/731/266/19")
+      3. Plain 8–12 digit number near an account anchor (ignoring "METER NO")
+      4. Any 8–12 digit number not on a "METER NO" line
     """
     lines = text.splitlines()
 
-    # Pass 1 — look for slash-formatted account near a label
+    # Pass 1 — look for slash-formatted account near an account label
     for i, line in enumerate(lines):
         if _NWSDB_ACCOUNT_ANCHOR.search(line):
             window = " ".join(lines[i: i + 3])
             m = _NWSDB_SLASH_ACCOUNT.search(window)
             if m:
                 return m.group(1)
-            # Try plain digits in the same window
-            m2 = re.search(r"\b([0-9]{8,12})\b", window)
-            if m2:
-                return m2.group(1)
 
     # Pass 2 — any slash-formatted account anywhere in the document
     m = _NWSDB_SLASH_ACCOUNT.search(text)
     if m:
         return m.group(1)
 
-    # Pass 3 — any 8–12 digit number (last resort)
-    m = re.search(r"\b([0-9]{8,12})\b", text)
-    if m:
-        return m.group(1)
+    # Pass 3 — plain digits near an account anchor (skipping METER NO)
+    for i, line in enumerate(lines):
+        if _NWSDB_ACCOUNT_ANCHOR.search(line) and not _NWSDB_IGNORED_LABELS.search(line):
+            window = " ".join(
+                ln for ln in lines[i: i + 3] if not _NWSDB_IGNORED_LABELS.search(ln)
+            )
+            m2 = re.search(r"\b([0-9]{8,12})\b", window)
+            if m2:
+                return m2.group(1)
+
+    # Pass 4 — any 8–12 digit number not on a METER NO line (last resort)
+    for line in lines:
+        if _NWSDB_IGNORED_LABELS.search(line):
+            continue
+        m = re.search(r"\b([0-9]{8,12})\b", line)
+        if m:
+            return m.group(1)
 
     return None
 
@@ -278,43 +295,61 @@ def _extract_commercial_tou_units(text: str) -> Optional[Tuple[float, str]]:
 # ---------------------------------------------------------------------------
 
 def _extract_nwsdb_units_m3(text: str) -> Optional[Tuple[float, str]]:
-    """Extract water consumption in cubic metres from NWSDB bills and SMS.
+    """Extract water consumption in cubic metres from NWSDB bills, e-Bills, and SMS.
 
     Supported formats (highest priority first):
-    1. SMS/e-Bill diff formula: "Consumption : 1096 - 1071 = 25"
-    2. Printed bill column:     "Consump. M3  28" or "Consump. M³  28"
-    3. Generic label:           "Consumption  25 m3"
-    4. Number before unit:      "25 M3" / "25 m³"
+    1. SMS diff formula:       "Consumption : 1096 - 1071 = 25"
+    2. e-Bill label:           "Consumption (m3)" / "Consumption (m³)"
+                               (ignoring "Average Consumption for 30 Days" & "Extra Consumption (m3)")
+    3. Printed bill column:    "Consump. M3  28" or "Consump. M³  28"
+    4. Generic label:          "Consumption  25" (excluding Average/Extra lines)
+    5. Number before unit:     "25 M3" / "25 m³"
     """
+    # Filter out lines that report average or extra consumption so they never shadow actual usage
+    filtered_lines = [
+        ln for ln in text.splitlines()
+        if not re.search(r"(?:AVERAGE\s+CONSUMPTION|EXTRA\s+CONSUMPTION)", ln, re.IGNORECASE)
+    ]
+    filtered_text = "\n".join(filtered_lines)
+
     # 1. SMS difference formula — take the final RHS value
     m = re.search(
         r"Consumption\s*[:\-]\s*[0-9]+\s*[-–]\s*[0-9]+\s*=\s*([0-9]+(?:\.[0-9]+)?)",
-        text,
+        filtered_text,
         re.IGNORECASE,
     )
     if m:
         return parse_float_safely(m.group(1)), m.group(1)
 
-    # 2. "Consump. M3" / "Consump. M³" column on printed bill
+    # 2. e-Bill "Consumption (m3)" / "Consumption (m³)"
+    m = re.search(
+        r"Consumption\s*\(\s*m[3³]\s*\)\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)",
+        filtered_text,
+        re.IGNORECASE,
+    )
+    if m:
+        return parse_float_safely(m.group(1)), m.group(1)
+
+    # 3. "Consump. M3" / "Consump. M³" column on printed bill
     m = re.search(
         r"Consump\.?\s*M[3³]\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)",
-        text,
+        filtered_text,
         re.IGNORECASE,
     )
     if m:
         return parse_float_safely(m.group(1)), m.group(1)
 
-    # 3. Generic consumption label (not the SMS diff form)
+    # 4. Generic consumption label (not Average/Extra)
     m = re.search(
         r"(?:CONSUMPTION|USAGE|UNITS?\s*M[3³]|WATER\s*UNITS?)\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)",
-        text,
+        filtered_text,
         re.IGNORECASE,
     )
     if m:
         return parse_float_safely(m.group(1)), m.group(1)
 
-    # 4. Bare number followed by m3 / m³
-    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*M[3³]\b", text, re.IGNORECASE)
+    # 5. Bare number followed by m3 / m³
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*M[3³]\b", filtered_text, re.IGNORECASE)
     if m:
         return parse_float_safely(m.group(1)), m.group(1)
 
@@ -380,16 +415,18 @@ def _extract_nwsdb_billing_period(text: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 def _extract_nwsdb_total_amount(text: str) -> Optional[str]:
-    """Extract total charge from NWSDB bills and SMS.
+    """Extract total charge from NWSDB bills, e-Bills, and SMS.
 
     Priority order:
-    1. "Cur. Month Charge (Rs)" / "Current Month Charge"
-    2. "Monthly Charges : Rs."
-    3. "Total Due (Rs)" / "Total Due"
-    4. Generic "Total Payable / Total Amount / Amount Due"
-    5. Bare "Rs." prefix
+    1. "Charges This Month" (e-Bill — prioritised over Total Amount Due which can be negative if prepaid)
+    2. "Cur. Month Charge (Rs)" / "Current Month Charge"
+    3. "Monthly Charges : Rs."
+    4. "Total Due (Rs)" / "Total Due"
+    5. Generic "Total Payable / Total Amount / Amount Due"
+    6. Bare "Rs." prefix
     """
     for pattern in (
+        r"CHARGES?\s*THIS\s*MONTH(?:\s*\(RS\.?\))?[:\-\s]*(?:RS\.?\s*)?([0-9,]+(?:\.[0-9]{1,2})?)",
         r"CUR(?:RENT)?\.?\s*MONTH\s*CHARGE(?:\s*\(RS\.?\))?[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
         r"MONTHLY\s*CHARGES?\s*[:\-]?\s*RS\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)",
         r"TOTAL\s*DUE(?:\s*\(RS\.?\))?[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",

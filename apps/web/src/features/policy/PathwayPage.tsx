@@ -3,10 +3,10 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { ErrorBox, Footnote, KpiCard, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type PathwayResult } from '../../lib/api'
 import { scenarioRepo, type Scenario } from '../../lib/repositories/scenarioRepository'
+import { useReportingYears } from '../../hooks/useReportingYears'
 
 export default function PathwayPage() {
-  const [years, setYears] = useState<string[]>([])
-  const [year, setYear] = useState('')
+  const { years, year, setYear, error: yearsError } = useReportingYears()
   const [scope1, setScope1] = useState(10)
   const [scope2, setScope2] = useState(20)
   const [scope3, setScope3] = useState(5)
@@ -19,17 +19,6 @@ export default function PathwayPage() {
   const [scenarioName, setScenarioName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-
-  useEffect(() => {
-    policyApi
-      .periods()
-      .then((data) => {
-        setYears(data.reporting_years)
-        const latest = data.reporting_years.at(-1)
-        if (latest) setYear(latest)
-      })
-      .catch((err: Error) => setError(err.message))
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -101,6 +90,7 @@ export default function PathwayPage() {
       setSavedScenarios((prev) => prev.filter((s) => s.id !== id))
     }
   }
+const shownError = error ?? yearsError
 
   return (
     <div className="space-y-6">
@@ -114,7 +104,7 @@ export default function PathwayPage() {
         <YearSelect value={year} years={years} onChange={setYear} />
       </header>
 
-      {error ? <ErrorBox message={error} /> : null}
+      {shownError ? <ErrorBox message={shownError} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <Panel title="Scenario assumptions" description="Reduction applied to each scope">

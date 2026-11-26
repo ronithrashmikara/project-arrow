@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ErrorBox, Footnote, LockBadge, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type CategoryStat } from '../../lib/api'
 import { useReportingYears } from '../../hooks/useReportingYears'
+import { PageHeader } from '../../components/PageHeader'
 import BoxPlot from './charts/BoxPlot'
 
 export default function CategoryPage() {
@@ -37,15 +38,11 @@ export default function CategoryPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">By category</h1>
-          <p className="mt-1 text-[13px] leading-[18px] text-soft-sea-glass">
-            SLTDA category groups · {year || 'all reporting years'}
-          </p>
-        </div>
-        <YearSelect value={year} years={years} onChange={setYear} />
-      </header>
+      <PageHeader
+      title="By category"
+      subtitle={`SLTDA category groups · ${year || 'all reporting years'}`}
+      actions={<YearSelect value={year} years={years} onChange={setYear} />}
+      />
 
       <Panel
         title="Distribution by category"

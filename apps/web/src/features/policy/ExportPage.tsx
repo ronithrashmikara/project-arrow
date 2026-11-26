@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, ErrorBox, Footnote, GlassCard, Panel, Pill, YearSelect } from '../../components/ui'
 import { policyApi } from '../../lib/api'
+import { PageHeader } from '../../components/PageHeader'
 import { useReportingYears } from '../../hooks/useReportingYears'
 
 export default function ExportPage() {
@@ -35,16 +36,11 @@ export default function ExportPage() {
   if (shownError) return <ErrorBox message={shownError} />
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">Data export / API</h1>
-          <p className="mt-1 text-[13px] leading-[18px] text-soft-sea-glass">
-            Anonymised district aggregates and the read-only partner API
-          </p>
-        </div>
-        <YearSelect value={year} years={years} onChange={setYear} />
-      </header>
-
+      <PageHeader
+      title="Export"
+      subtitle={`Anonymised dataset download · ${year || 'all reporting years'}`}
+      actions={<YearSelect value={year} years={years} onChange={setYear} />}
+      /> 
       {error ? <ErrorBox message={error} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-2">

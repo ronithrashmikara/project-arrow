@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ErrorBox, Footnote, Panel, Pill, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type LeaderboardEntry } from '../../lib/api'
+import { PageHeader } from '../../components/PageHeader'
 import { useReportingYears } from '../../hooks/useReportingYears'
 
 const TIER_STYLE: Record<LeaderboardEntry['tier'], { text: string; ring: string; bg: string }> = {
@@ -54,18 +55,11 @@ export default function LeaderboardPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">Leaderboard</h1>
-          <p className="mt-1 text-[13px] leading-[18px] text-soft-sea-glass">
-            Pseudonymised national ranking within category and size band
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Pill tone="mint">Identities hidden</Pill>
-          <YearSelect value={year} years={years} onChange={setYear} />
-        </div>
-      </header>
+      <PageHeader
+      title="Leaderboard"
+      subtitle={`Pseudonymised ranking of properties · ${year || 'all reporting years'}`}
+      actions={<YearSelect value={year} years={years} onChange={setYear} />}
+      />
 
       {grouped.length === 0 ? (
         <Panel title="No publishable groups">

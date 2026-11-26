@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button, ErrorBox, Footnote, LockBadge, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type DistrictHeatStat } from '../../lib/api'
 import { rampColour } from './charts/HeatMap'
+import { PageHeader } from '../../components/PageHeader'
 import { useReportingYears } from '../../hooks/useReportingYears'
 
 export default function DistrictPage() {
@@ -39,22 +40,20 @@ export default function DistrictPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">By district</h1>
-          <p className="mt-1 text-[13px] leading-[18px] text-soft-sea-glass">
-            District aggregates for {year || 'all reporting years'} · k ≥ 5 enforced
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
+     <PageHeader
+      title="By district"
+      subtitle={`District aggregates for ${year || 'all reporting years'} · k ≥ 5 enforced`}
+      actions={
+        <>
           <YearSelect value={year} years={years} onChange={setYear} />
           <a href={policyApi.exportUrl(year || undefined)} download>
             <Button variant="secondary" icon="⭳">
               Export CSV
             </Button>
           </a>
-        </div>
-      </header>
+        </>
+      }
+    />
 
       <Panel
         title="District table"

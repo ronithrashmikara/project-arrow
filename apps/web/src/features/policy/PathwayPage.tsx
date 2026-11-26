@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { ErrorBox, Footnote, KpiCard, Panel, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type PathwayResult } from '../../lib/api'
 import { scenarioRepo, type Scenario } from '../../lib/repositories/scenarioRepository'
+import { PageHeader } from '../../components/PageHeader'
 import { useReportingYears } from '../../hooks/useReportingYears'
 
 export default function PathwayPage() {
@@ -92,17 +93,14 @@ export default function PathwayPage() {
   }
 const shownError = error ?? yearsError
 
+
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">2030 pathway sandbox</h1>
-          <p className="mt-1 text-[13px] leading-[18px] text-soft-sea-glass">
-            Compare a national baseline against a reduction scenario. Indicative projections only.
-          </p>
-        </div>
-        <YearSelect value={year} years={years} onChange={setYear} />
-      </header>
+      <PageHeader
+        title="2030 pathway sandbox"
+        subtitle="Compare a national baseline against a reduction scenario. Indicative projections only."
+        actions={<YearSelect value={year} years={years} onChange={setYear} />}
+      />
 
       {shownError ? <ErrorBox message={shownError} /> : null}
 

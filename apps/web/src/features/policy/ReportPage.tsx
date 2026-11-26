@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button, ErrorBox, Footnote, GlassCard, Panel, Pill, Spinner, YearSelect } from '../../components/ui'
 import { policyApi, type BaselineReport } from '../../lib/api'
 import { useReportingYears } from '../../hooks/useReportingYears'
+import { PageHeader } from '../../components/PageHeader'
 
 
 export default function ReportPage() {
@@ -49,20 +50,18 @@ if (shownError) return <ErrorBox message={shownError} />
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">Baseline report</h1>
-          <p className="mt-1 text-[13px] leading-[18px] text-soft-sea-glass">
-            National baseline brief for {year || 'all reporting years'}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <YearSelect value={year} years={years} onChange={setYear} />
-          <Button variant="secondary" icon="⭳" onClick={downloadText} disabled={!report}>
-            Download report
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Baseline report"
+        subtitle={`National baseline brief for ${year || 'all reporting years'}`}
+        actions={
+          <>
+            <YearSelect value={year} years={years} onChange={setYear} />
+            <Button variant="secondary" icon="⭳" onClick={downloadText} disabled={!report}>
+              Download report
+            </Button>
+          </>
+        }
+      />
 
       {loading ? <Spinner label="Generating baseline report" /> : null}
       {error ? <ErrorBox message={error} /> : null}

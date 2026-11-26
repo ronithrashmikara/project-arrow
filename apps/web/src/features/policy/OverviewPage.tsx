@@ -11,6 +11,7 @@ import {
 import BoxPlot from './charts/BoxPlot'
 import HeatMap from './charts/HeatMap'
 import SeasonalityChart from './charts/SeasonalityChart'
+import { PageHeader } from '../../components/PageHeader'
 import { useReportingYears } from '../../hooks/useReportingYears'
 
 
@@ -65,38 +66,11 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] leading-7 font-semibold text-paper">
-            Sri Lanka tourist accommodation · FY {overview?.year}
-          </h1>
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-[13px] leading-[18px] text-soft-sea-glass">
-            Anonymised · consented properties only · groups &lt; 5 hidden
-            <Pill tone="copper" icon="🔒">
-              k ≥ 5
-            </Pill>
-            {overview && overview.estimated_properties > 0 ? (
-              <Pill tone="gold" icon="◔">
-                {overview.estimated_properties} estimated
-              </Pill>
-            ) : null}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <YearSelect value={year} years={years} onChange={setYear} />
-          <a href={policyApi.exportUrl(year || undefined)} download>
-            <Button variant="secondary" icon="⭳">
-              Export CSV
-            </Button>
-          </a>
-          <Link to="/policy/report">
-            <Button variant="primary" icon="✦">
-              Generate baseline report
-            </Button>
-          </Link>
-        </div>
-      </header>
+      <PageHeader
+      title="National overview"
+      subtitle={`Aggregated figures for ${year || 'all reporting years'} · k ≥ 5 enforced`}
+      actions={<YearSelect value={year} years={years} onChange={setYear} />}
+    /> 
 
       {overview ? (
         <section aria-label="Key performance indicators" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

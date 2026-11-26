@@ -53,8 +53,40 @@ def _strip_commas(val: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Document-type classifier
+# Document-type classifier & hint resolver
 # ---------------------------------------------------------------------------
+
+_BILL_TYPE_ALIASES: Dict[str, DocumentType] = {
+    "electricity": DocumentType.ELECTRICITY_BILL,
+    "electricity_bill": DocumentType.ELECTRICITY_BILL,
+    "ceb": DocumentType.ELECTRICITY_BILL,
+    "leco": DocumentType.ELECTRICITY_BILL,
+    "water": DocumentType.WATER_BILL,
+    "water_bill": DocumentType.WATER_BILL,
+    "nwsdb": DocumentType.WATER_BILL,
+    "lpg": DocumentType.LPG_RECEIPT,
+    "lpg_receipt": DocumentType.LPG_RECEIPT,
+    "gas": DocumentType.LPG_RECEIPT,
+    "fuel": DocumentType.GENERATOR_FUEL,
+    "generator_fuel": DocumentType.GENERATOR_FUEL,
+    "diesel": DocumentType.GENERATOR_FUEL,
+    "meter": DocumentType.METER_READING,
+    "meter_reading": DocumentType.METER_READING,
+}
+
+
+def resolve_document_type(hint: Optional[str]) -> Optional[DocumentType]:
+    """Map an explicit bill_type or document_type string to a DocumentType enum."""
+    if not hint:
+        return None
+    normalized = hint.strip().lower()
+    if normalized in _BILL_TYPE_ALIASES:
+        return _BILL_TYPE_ALIASES[normalized]
+    try:
+        return DocumentType(normalized)
+    except ValueError:
+        return None
+
 
 def detect_document_type(text: str) -> DocumentType:
     """Classify bill type using Sri Lankan utility provider keywords."""
@@ -358,9 +390,9 @@ def _extract_nwsdb_total_amount(text: str) -> Optional[str]:
     5. Bare "Rs." prefix
     """
     for pattern in (
-        r"CUR(?:RENT)?\.?\s*MONTH\s*CHARGE(?:\s*\(RS\))?[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+        r"CUR(?:RENT)?\.?\s*MONTH\s*CHARGE(?:\s*\(RS\.?\))?[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
         r"MONTHLY\s*CHARGES?\s*[:\-]?\s*RS\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)",
-        r"TOTAL\s*DUE(?:\s*\(RS\))?[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
+        r"TOTAL\s*DUE(?:\s*\(RS\.?\))?[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
         r"(?:TOTAL\s*(?:AMOUNT\s*)?PAYABLE|TOTAL\s*AMOUNT|NET\s*AMOUNT|AMOUNT\s*DUE)"
         r"[:\-\s]*([0-9,]+(?:\.[0-9]{1,2})?)",
         r"(?:RS\.?|LKR)\s*([0-9,]+(?:\.[0-9]{1,2})?)",
@@ -445,14 +477,15 @@ class BillFieldParser:
         extracted_tokens: List[ExtractedField],
         raw_text: Optional[str] = None,
         doc_type_hint: Optional[DocumentType] = None,
+        bill_type: Optional[str] = None,
     ) -> Tuple[DocumentType, Dict[str, ExtractedField]]:
         """Parse extracted OCR tokens into standard bill fields.
 
         Args:
             extracted_tokens: List of tokens/fields produced by OCR engines.
             raw_text: Full raw transcript string if available.
-            doc_type_hint: Explicit bill type hint from caller (from frontend
-                           bill-type selector). Takes priority over auto-detection.
+            doc_type_hint: Explicit DocumentType enum hint from caller if known.
+            bill_type: Optional string hint (e.g. "electricity", "water", "lpg", "fuel").
 
         Returns:
             ``(detected_document_type, dict_of_parsed_fields)``
@@ -461,7 +494,8 @@ class BillFieldParser:
             raw_text = "\n".join(f.raw_text for f in extracted_tokens if f.raw_text)
 
         # Caller-supplied hint always wins; fall back to keyword auto-detection
-        doc_type = doc_type_hint or detect_document_type(raw_text)
+        resolved_hint = doc_type_hint or resolve_document_type(bill_type)
+        doc_type = resolved_hint or detect_document_type(raw_text)
 
         if doc_type == DocumentType.ELECTRICITY_BILL:
             parsed = self._parse_electricity_bill(extracted_tokens, raw_text)

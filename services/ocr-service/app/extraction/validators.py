@@ -258,6 +258,12 @@ def run_document_validations(
         elif u_msg:
             errors.append(BillValidationError("units_m3", u_msg, is_critical=False))
 
+        # Billing Period
+        bp = parsed_fields.get("billing_period")
+        is_valid_bp, bp_msg = validate_billing_period(bp)
+        if not is_valid_bp and bp_msg:
+            errors.append(BillValidationError("billing_period", bp_msg, is_critical=False))
+
     elif "lpg" in doc_type_lower or "gas" in doc_type_lower:
         qty = parse_float_safely(parsed_fields.get("quantity_kg_or_liters") or parsed_fields.get("quantity_kg"))
         is_valid_q, q_msg = validate_lpg_quantity(qty, unit="kg")

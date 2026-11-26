@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
 from app.config import settings
-from app.extraction.field_parser import field_parser
+from app.extraction.field_parser import field_parser, resolve_document_type
 from app.hitl.review_service import review_store
 from app.preprocessing.pipeline import default_pipeline
 from app.engines.router import ocr_router
@@ -28,9 +28,13 @@ router = APIRouter(prefix="/ocr", tags=["OCR Extraction"])
 )
 async def extract_bill(
     file: UploadFile = File(..., description="Utility bill image (JPEG, PNG, WebP, etc.)"),
+    bill_type: Optional[str] = Form(
+        None,
+        description="Optional bill type hint (e.g. electricity, water, lpg, fuel)",
+    ),
     document_type: Optional[str] = Form(
         None,
-        description="Optional document type hint (e.g. electricity_bill, water_bill, lpg_receipt)",
+        description="Optional document type hint (e.g. electricity_bill, water_bill, lpg_receipt, generator_fuel)",
     ),
 ) -> DraftExtractionResult:
     # 1. Validate file extension
@@ -81,13 +85,8 @@ async def extract_bill(
 
     raw_text = "\n".join(t.raw_text for t in extracted_tokens if t.raw_text)
 
-    # 6. Parse structured fields
-    doc_type_enum: Optional[DocumentType] = None
-    if document_type:
-        try:
-            doc_type_enum = DocumentType(document_type.lower())
-        except ValueError:
-            pass  # Fall back to auto-detection
+    # 6. Parse structured fields (bill_type / document_type takes priority over keyword detection)
+    doc_type_enum: Optional[DocumentType] = resolve_document_type(bill_type or document_type)
 
     detected_type, fields = field_parser.parse(
         extracted_tokens,

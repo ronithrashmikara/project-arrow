@@ -63,9 +63,11 @@ def parse_float_safely(val: Any) -> Optional[float]:
 def validate_account_number(acc_str: Optional[str], provider: str = "CEB") -> Tuple[bool, Optional[str]]:
     """Validate Sri Lankan utility account number formats.
 
-    - CEB: 10 digits (e.g. 0723456789)
-    - LECO: 10 digits (e.g. 2101234567)
-    - NWSDB: 10 digits or formatted as XX/XX/XXX/XXX/XX
+    - CEB:   10 digits (e.g. 1710248106)
+    - LECO:  10 digits (e.g. 2101234567)
+    - NWSDB: slash-delimited "42/24/731/266/19" OR 8–14 plain digits.
+             The slash format has variable segment counts (typically 5 groups)
+             and a total digit count of 8–14.  Both are accepted.
     """
     if not acc_str:
         return False, "Account number is missing."
@@ -75,12 +77,22 @@ def validate_account_number(acc_str: Optional[str], provider: str = "CEB") -> Tu
     if provider.upper() in ("CEB", "LECO"):
         if len(digits_only) == 10:
             return True, None
-        return False, f"{provider} account number must be 10 digits (got {len(digits_only)} digits: '{acc_str}')."
+        return False, (
+            f"{provider} account number must be 10 digits "
+            f"(got {len(digits_only)} digits: '{acc_str}')."
+        )
 
     if provider.upper() in ("NWSDB", "WATER"):
-        if 8 <= len(digits_only) <= 12:
+        # Accept slash-formatted strings like "42/24/731/266/19"
+        if re.match(r"^[0-9]{1,4}(?:/[0-9]{1,4}){2,6}$", acc_str.strip()):
             return True, None
-        return False, f"NWSDB account number must be 8-12 digits (got '{acc_str}')."
+        # Accept plain digit strings 8–14 digits long
+        if 8 <= len(digits_only) <= 14:
+            return True, None
+        return False, (
+            f"NWSDB account number must be a slash-formatted number "
+            f"(e.g. 42/24/731/266/19) or 8–14 digits (got '{acc_str}')."
+        )
 
     # General fallback
     if len(digits_only) >= 6:
